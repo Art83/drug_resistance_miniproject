@@ -1,0 +1,162 @@
+# Research on problem of microbial resistance
+# Project folder is /drug_resistance_miniproject. 
+# Data files(reference sequence of unevolved E.coli strain and raw sequencing reads) are presented in /drug_resistance/original_files
+# Intermediate files, which are generated while working with the pipeline, are kept in /drug_resistance_miniproject/intermediate
+# Results are in /drug_resistance_miniproject/results
+
+# Workflow
+
+# Step 1. Quality control with FASTQC and Trimmomatic
+
+fastqc ~/drug_resistance_miniproject/original_files/amp_res_1.fastq -o ~/drug_resistance_miniproject/intermediate/
+Started analysis of amp_res_1.fastq
+
+Approx 5% complete for amp_res_1.fastq
+Approx 10% complete for amp_res_1.fastq
+Approx 15% complete for amp_res_1.fastq
+Approx 20% complete for amp_res_1.fastq
+Approx 25% complete for amp_res_1.fastq
+Approx 30% complete for amp_res_1.fastq
+Approx 35% complete for amp_res_1.fastq
+Approx 40% complete for amp_res_1.fastq
+Approx 45% complete for amp_res_1.fastq
+Approx 50% complete for amp_res_1.fastq
+Approx 55% complete for amp_res_1.fastq
+Approx 60% complete for amp_res_1.fastq
+Approx 65% complete for amp_res_1.fastq
+Approx 70% complete for amp_res_1.fastq
+Approx 75% complete for amp_res_1.fastq
+Approx 80% complete for amp_res_1.fastq
+Approx 85% complete for amp_res_1.fastq
+Approx 90% complete for amp_res_1.fastq
+Approx 95% complete for amp_res_1.fastq
+Analysis complete for amp_res_1.fastq
+
+fastqc ~/drug_resistance_miniproject/original_files/amp_res_1.fastq -o ~/drug_resistance_miniproject/intermediate/
+Started analysis of amp_res_2.fastq
+Approx 5% complete for amp_res_2.fastq
+Approx 10% complete for amp_res_2.fastq
+Approx 15% complete for amp_res_2.fastq
+Approx 20% complete for amp_res_2.fastq
+Approx 25% complete for amp_res_2.fastq
+Approx 30% complete for amp_res_2.fastq
+Approx 35% complete for amp_res_2.fastq
+Approx 40% complete for amp_res_2.fastq
+Approx 45% complete for amp_res_2.fastq
+Approx 50% complete for amp_res_2.fastq
+Approx 55% complete for amp_res_2.fastq
+Approx 60% complete for amp_res_2.fastq
+Approx 65% complete for amp_res_2.fastq
+Approx 70% complete for amp_res_2.fastq
+Approx 75% complete for amp_res_2.fastq
+Approx 80% complete for amp_res_2.fastq
+Approx 85% complete for amp_res_2.fastq
+Approx 90% complete for amp_res_2.fastq
+Approx 95% complete for amp_res_2.fastq
+Analysis complete for amp_res_2.fastq
+
+# The raw reads files haven't passed two tests namely Per base sequence quality and Per tile sequence quality. 
+# Possible solution for improving the results of analysis is removing low score base calls with Trimmomatic-0.38
+
+java -classpath ~/Documents/Trimmomatic-0.38/trimmomatic-0.38.jar org.usadellab.trimmomatic.TrimmomaticPE -phred33 ~/drug_resistance_miniproject/original_files/amp_res_1.fastq ~/drug_resistance_miniproject/original_files/amp_res_2.fastq ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc SLIDINGWINDOW:4:15
+TrimmomaticPE: Started with arguments:
+ -phred33 /home/arthur/drug_resistance_miniproject/original_files/amp_res_1.fastq /home/arthur/drug_resistance_miniproject/original_files/amp_res_2.fastq /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc SLIDINGWINDOW:4:15
+Multiple cores found: Using 4 threads
+Input Read Pairs: 455876 Both Surviving: 453228 (99.42%) Forward Only Surviving: 2209 (0.48%) Reverse Only Surviving: 426 (0.09%) Dropped: 13 (0.00%)
+TrimmomaticPE: Completed successfully
+
+# The test Per base quality now passed (tried different SLIDINGWINDOW parameters: 4:20, 4:15, 4:10 - results don't change drastically, also played with TRAILING/LEADING parameters - results visibly didn't change)
+
+# Step 2 Aligning sequences to reference (bwa or bowtie2)
+bwa index -p /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_genome /home/arthur/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna
+[bwa_index] Pack FASTA... 0.07 sec
+[bwa_index] Construct BWT for the packed sequence...
+[bwa_index] 2.40 seconds elapse.
+[bwa_index] Update BWT... 0.03 sec
+[bwa_index] Pack forward-only FASTA... 0.04 sec
+[bwa_index] Construct SA from BWT and Occ... 1.25 sec
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa index -p /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_genome /home/arthur/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna
+[main] Real time: 3.958 sec; CPU: 3.791 sec
+
+# Aligning sequences using multiple threads
+bwa aln -t 4 ~/drug_resistance_miniproject/intermediate/Indexed_ref_genome ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc > output_R1.bwa
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 26.34 sec
+[bwa_aln_core] write to the disk... 0.06 sec
+[bwa_aln_core] 262144 sequences have been processed.
+[bwa_aln_core] calculate SA coordinate... 18.63 sec
+[bwa_aln_core] write to the disk... 0.04 sec
+[bwa_aln_core] 455116 sequences have been processed.
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa aln -t 4 /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_genome /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc
+[main] Real time: 13.046 sec; CPU: 46.040 sec
+
+bwa aln -t 4 ~/drug_resistance_miniproject/intermediate/Indexed_ref_genome ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc > output_R2.bwa
+
+[bwa_aln] 17bp reads: max_diff = 2
+[bwa_aln] 38bp reads: max_diff = 3
+[bwa_aln] 64bp reads: max_diff = 4
+[bwa_aln] 93bp reads: max_diff = 5
+[bwa_aln] 124bp reads: max_diff = 6
+[bwa_aln] 157bp reads: max_diff = 7
+[bwa_aln] 190bp reads: max_diff = 8
+[bwa_aln] 225bp reads: max_diff = 9
+[bwa_aln_core] calculate SA coordinate... 26.46 sec
+[bwa_aln_core] write to the disk... 0.07 sec
+[bwa_aln_core] 262144 sequences have been processed.
+[bwa_aln_core] calculate SA coordinate... 19.34 sec
+[bwa_aln_core] write to the disk... 0.04 sec
+[bwa_aln_core] 455116 sequences have been processed.
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa aln -t 4 /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_genome /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc
+[main] Real time: 13.226 sec; CPU: 46.841 sec
+# Converting to sam file
+bwa sampe Indexed_ref_genome output_R1.bwa output_R2.bwa output_trimmed_R1_paired_fastqc output_trimmed_R2_paired_fastqc > output.sam
+
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (151, 188, 233)
+[infer_isize] low and high boundaries: 101 and 397 for estimating avg and std
+[infer_isize] inferred external isize from 237381 pairs: 195.610 +/- 58.300
+[infer_isize] skewness: 0.651; kurtosis: 0.078; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 544 (5.98 sigma)
+[bwa_sai2sam_pe_core] time elapses: 18.10 sec
+[bwa_sai2sam_pe_core] changing coordinates of 1408 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 1937 out of 3494 Q17 singletons are mated.
+[bwa_paired_sw] 6 out of 5091 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.32 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.54 sec
+[bwa_sai2sam_pe_core] print alignments... 1.44 sec
+[bwa_sai2sam_pe_core] 262144 sequences have been processed.
+[bwa_sai2sam_pe_core] convert to sequence coordinate... 
+[infer_isize] (25, 50, 75) percentile: (151, 188, 233)
+[infer_isize] low and high boundaries: 101 and 397 for estimating avg and std
+[infer_isize] inferred external isize from 174330 pairs: 195.690 +/- 58.446
+[infer_isize] skewness: 0.650; kurtosis: 0.061; ap_prior: 1.00e-05
+[infer_isize] inferred maximum insert size: 545 (5.98 sigma)
+[bwa_sai2sam_pe_core] time elapses: 14.69 sec
+[bwa_sai2sam_pe_core] changing coordinates of 1037 alignments.
+[bwa_sai2sam_pe_core] align unmapped mate...
+[bwa_paired_sw] 1884 out of 3138 Q17 singletons are mated.
+[bwa_paired_sw] 10 out of 3454 Q17 discordant pairs are fixed.
+[bwa_sai2sam_pe_core] time elapses: 0.26 sec
+[bwa_sai2sam_pe_core] refine gapped alignments... 0.38 sec
+[bwa_sai2sam_pe_core] print alignments... 1.07 sec
+[bwa_sai2sam_pe_core] 455116 sequences have been processed.
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa sampe Indexed_ref_genome output_R1.bwa output_R2.bwa output_trimmed_R1_paired_fastqc output_trimmed_R2_paired_fastqc
+[main] Real time: 39.241 sec; CPU: 38.598 sec
+
+
+
+
+
+
