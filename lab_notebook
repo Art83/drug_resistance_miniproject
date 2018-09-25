@@ -156,73 +156,6 @@ bwa sampe Indexed_ref_genome output_R1.bwa output_R2.bwa output_trimmed_R1_paire
 [main] CMD: bwa sampe Indexed_ref_genome output_R1.bwa output_R2.bwa output_trimmed_R1_paired_fastqc output_trimmed_R2_paired_fastqc
 [main] Real time: 39.241 sec; CPU: 38.598 sec
 
-# Using bwa mem 
-bwa mem -t 4 ~/drug_resistance_miniproject/intermediate/Indexed_ref_genome ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc > aln_bwa.sam
-
-# output of this line is quite large
-
-samtools view -S -b aln_bwa.sam > aln_bwa.bam
-911753 + 0 in total (QC-passed reads + QC-failed reads)
-0 + 0 duplicates
-905921 + 0 mapped (99.36%:-nan%)
-911753 + 0 paired in sequencing
-455877 + 0 read1
-455876 + 0 read2
-900537 + 0 properly paired (98.77%:-nan%)
-902331 + 0 with itself and mate mapped
-3590 + 0 singletons (0.39%:-nan%)
-0 + 0 with mate mapped to a different chr
-0 + 0 with mate mapped to a different chr (mapQ>=5)
-
-samtools sort aln_bwa.bam aln_bwa_sorted
-samtools index aln_bwa_sorted
-samtools mpileup -f ~/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna aln_bwa_sorted.bam > bwa_mem_pileup
-java -jar VarScan.v2.3.9.jar  mpileup2snp ~/drug_resistance_miniproject/intermediate/bwa_mem_pileup --min-var-freq 0.05 --variants --output-vcf 1 > ~/drug_resistance_miniproject/results/VarScan_bwa_mem.vcf
-
-Only SNPs will be reported
-Warning: No p-value threshold provided, so p-values will not be calculated
-Min coverage:	8
-Min reads2:	2
-Min var freq:	0.05
-Min avg qual:	15
-# Using bwa mem
-bwa mem -t 4 ~/drug_resistance_miniproject/intermediate/Indexed_ref_genome ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc > aln_bwa.sam
-
-
-#Compressing .sam file to .bam file with samtools
-samtools view -S -b output.sam > output.bam
-[samopen] SAM header is present: 1 sequences.
-
-#Checking the stats
-samtools flagstat output.bam
-
-911752 + 0 in total (QC-passed reads + QC-failed reads)
-0 + 0 duplicates
-894547 + 0 mapped (98.11%:-nan%)
-911752 + 0 paired in sequencing
-455876 + 0 read1
-455876 + 0 read2
-861380 + 0 properly paired (94.48%:-nan%)
-889842 + 0 with itself and mate mapped
-4705 + 0 singletons (0.52%:-nan%)
-0 + 0 with mate mapped to a different chr
-0 + 0 with mate mapped to a different chr (mapQ>=5)
-
-## No mapped read? not sure how to read the output of this command!!!
-
-#Sorting and indexing /bam file
-samtools sort output.bam output_sorted
-
-# going through the reads and creating mpileup file
-samtools mpileup -f ~/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna output_sorted.bam > my.mpileup
-
-[fai_load] build FASTA index.
-[mpileup] 1 samples in 1 input files
-<mpileup> Set max per-file depth to 8000
-
-# Searching for variants with VarScan
-
-cd ~/Documents/VarScan
 
 # Not sure how to call the .jar from the different folder!!
 
@@ -231,7 +164,7 @@ Only SNPs will be reported
 Warning: No p-value threshold provided, so p-values will not be calculated
 Min coverage:	8
 Min reads2:	2
-Min var freq:	0.5
+Min var freq:	0.05
 Min avg qual:	15
 P-value thresh:	0.01
 Reading input from my.mpileup
@@ -241,7 +174,7 @@ Reading input from my.mpileup
 6 variant positions reported (6 SNP, 0 indel)
 
 
-#As a result we can see 6 reported SNP.Proceed to visualizing with IGV browser
+#As a result we can see 6 reported SNP.Proceed to visualizing with IGV browser. Discovered SNPs were in ftsl, non-coding region, arcB, mntp, envz, rsgA. 
 
 # Doing the same but after bwa mem algorithm
 bwa mem -t 4 ~/drug_resistance_miniproject/intermediate/Indexed_ref_genome ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc > aln_bwa.sam
@@ -278,7 +211,7 @@ Reading input from /home/arthur/drug_resistance_miniproject/intermediate/bwa_mem
 0 were failed by the strand-filter
 6 variant positions reported (6 SNP, 0 indel)
 
-# The output after bwa mem is the same as after bwa-backtrack - 6 SNPs reported
+# The output after bwa mem is the same as after bwa-backtrack - 6 SNPs reported. Proceed to IGV. Discovered SNPs do not fully matched the SNPs received after backtrack algorithm! Bwa-mem excluded arcB SNP and included one more non-coding region SNP instead!
 
 
 
