@@ -1,6 +1,6 @@
 # Research on problem of microbial resistance
 # Project folder is /drug_resistance_miniproject. 
-# Data files(reference sequence of unevolved E.coli strain and raw sequencing reads) are presented in /drug_resistance/original_files
+# Data files(reference sequence of  E.coli strain and raw sequencing reads) are presented in /drug_resistance/original_files
 # Intermediate files, which are generated while working with the pipeline, are kept in /drug_resistance_miniproject/intermediate
 # Results are in /drug_resistance_miniproject/results
 
@@ -55,20 +55,20 @@ Approx 90% complete for amp_res_2.fastq
 Approx 95% complete for amp_res_2.fastq
 Analysis complete for amp_res_2.fastq
 
-# The raw reads files haven't passed two tests namely Per base sequence quality and Per tile sequence quality. 
-# Possible solution for improving the results of analysis is removing low score base calls with Trimmomatic-0.38
+# The raw reads files haven't passed two tests namely Per base sequence quality and Per tile sequence quality. Per base sequence content also flagged with warning. 
+# Possible solution for improving the results of analysis is removing low score base calls and also cropping first 20 bases to normalize Per base sequence content with Trimmomatic-0.38
 
-java -classpath ~/Documents/Trimmomatic-0.38/trimmomatic-0.38.jar org.usadellab.trimmomatic.TrimmomaticPE -phred33 ~/drug_resistance_miniproject/original_files/amp_res_1.fastq ~/drug_resistance_miniproject/original_files/amp_res_2.fastq ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc HEADCROP:10 CROP:50
+java -classpath ~/Documents/Trimmomatic-0.38/trimmomatic-0.38.jar org.usadellab.trimmomatic.TrimmomaticPE -phred33 ~/drug_resistance_miniproject/original_files/amp_res_1.fastq ~/drug_resistance_miniproject/original_files/amp_res_2.fastq ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc HEADCROP:10 CROP:50 MINLEN:50
 TrimmomaticPE: Started with arguments:
- -phred33 /home/arthur/drug_resistance_miniproject/original_files/amp_res_1.fastq /home/arthur/drug_resistance_miniproject/original_files/amp_res_2.fastq /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc HEADCROP:20 CROP:50
+ -phred33 /home/arthur/drug_resistance_miniproject/original_files/amp_res_1.fastq /home/arthur/drug_resistance_miniproject/original_files/amp_res_2.fastq /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc /home/arthur/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc HEADCROP:20 CROP:50 MINLEN:50
 Multiple cores found: Using 4 threads
 Input Read Pairs: 455876 Both Surviving: 455876 (100.00%) Forward Only Surviving: 0 (0.00%) Reverse Only Surviving: 0 (0.00%) Dropped: 0 (0.00%)
 TrimmomaticPE: Completed successfully
 
 
-# The test Per base quality now passed (tried different SLIDINGWINDOW parameters: 4:20, 4:15, 4:10 - results don't change drastically, also played with TRAILING/LEADING parameters - results visibly didn't change)
+# The test Per base quality now passed as well as Per base sequence graph looks much better (tried also too add different SLIDINGWINDOW parameters: 4:20, 4:15, 4:10 - results change quite drastically (~70% survived reads and only 2 SNPs detected), also played with TRAILING/LEADING parameters - results visibly didn't change)
 
-# Step 2 Aligning sequences to reference (bwa or bowtie2, I chose bwa)
+# Step 2 Aligning sequences to reference (bwa or bowtie2; tried both)
 bwa index -p /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_genome /home/arthur/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna
 [bwa_index] Pack FASTA... 0.07 sec
 [bwa_index] Construct BWT for the packed sequence...
@@ -80,7 +80,7 @@ bwa index -p /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_g
 [main] CMD: bwa index -p /home/arthur/drug_resistance_miniproject/intermediate/Indexed_ref_genome /home/arthur/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna
 [main] Real time: 3.958 sec; CPU: 3.791 sec
 
-# Aligning sequences using multiple threads( two options are psiible at this step: using bwa-backtrack or bwa mem)
+# Aligning sequences using multiple threads( two options are possible at this step: using bwa-backtrack or bwa mem)
 bwa aln -t 4 ~/drug_resistance_miniproject/intermediate/Indexed_ref_genome ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc > output_R1.bwa
 [bwa_aln] 17bp reads: max_diff = 2
 [bwa_aln] 38bp reads: max_diff = 3
@@ -156,8 +156,36 @@ bwa sampe Indexed_ref_genome output_R1.bwa output_R2.bwa output_trimmed_R1_paire
 [main] CMD: bwa sampe Indexed_ref_genome output_R1.bwa output_R2.bwa output_trimmed_R1_paired_fastqc output_trimmed_R2_paired_fastqc
 [main] Real time: 39.241 sec; CPU: 38.598 sec
 
+#Step 3. Working with .sam and .bam files
 
-# Not sure how to call the .jar from the different folder!!
+# Converting to bam
+samtools view -S -b output.sam > output.bam
+[samopen] SAM header is present: 1 sequences.
+
+# Looking at the stats
+samtools flagstat output.bam
+911752 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+894547 + 0 mapped (98.11%:-nan%)
+911752 + 0 paired in sequencing
+455876 + 0 read1
+455876 + 0 read2
+861380 + 0 properly paired (94.48%:-nan%)
+889842 + 0 with itself and mate mapped
+4705 + 0 singletons (0.52%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+#Sorting .bam file
+samtools sort output.bam output_sorted
+
+# Creating pileup file
+samtools mpileup -f ~/drug_resistance_miniproject/original_files/GCA_000005845.2_ASM584v2_genomic.fna output_sorted.bam > my.pileup
+[mpileup] 1 samples in 1 input files
+<mpileup> Set max per-file depth to 8000
+
+# Calling variants with VarScan 
+# Not sure how to call the .jar from the different folder so made my way to the folder that contains .jar file. 
 
 java -jar VarScan.v2.3.9.jar  mpileup2snp my.mpileup --min-var-freq 0.5 --variants --output-vcf 1 > ~/drug_resistance_miniproject/results/VarScan_results.vcf
 Only SNPs will be reported
@@ -213,5 +241,11 @@ Reading input from /home/arthur/drug_resistance_miniproject/intermediate/bwa_mem
 
 # The output after bwa mem is the same as after bwa-backtrack - 6 SNPs reported. Proceed to IGV. Discovered SNPs do not fully matched the SNPs received after backtrack algorithm! Bwa-mem excluded arcB SNP and included one more non-coding region SNP instead!
 
-
+# Another option to do alignment with bowtie2
+#Indexing genome
+bowtie2-build GCA_000005845.2_ASM584v2_genomic.fna indexed_genome
+# creating SAM file
+bowtie2 -x indexed_genome -1 output_trimmed_R1_paired_fastqc -2 output_trimmed_R2_paired_fastqc -p4 > alignment.sam
+# The rest as in case of bwa, the result is the same as in case of bwa-backtrack algorithm - 6 SNPs in ftsl, non-coding region, arcB, mntp, envz, rsgA
+-------------------------------------------------------------------------------------------------------------------------------------------------------
 
