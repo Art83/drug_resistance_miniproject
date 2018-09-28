@@ -57,6 +57,7 @@ Analysis complete for amp_res_2.fastq
 
 # The raw reads files haven't passed two tests namely Per base sequence quality and Per tile sequence quality. Per base sequence content also flagged with warning. 
 # Possible solution for improving the results of analysis is removing low score base calls and also cropping first 20 bases to normalize Per base sequence content with Trimmomatic-0.38
+# IMPORTANT. I realize that HEADCROP option is not quite necessary here, Per base sequence content was flagged only with warning.However, presence/absence of HEADCROP doesn't change the final result - 6 SNPs would be still reported, so I left it 
 
 java -classpath ~/Documents/Trimmomatic-0.38/trimmomatic-0.38.jar org.usadellab.trimmomatic.TrimmomaticPE -phred33 ~/drug_resistance_miniproject/original_files/amp_res_1.fastq ~/drug_resistance_miniproject/original_files/amp_res_2.fastq ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R1_unpaired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_paired_fastqc ~/drug_resistance_miniproject/intermediate/output_trimmed_R2_unpaired_fastqc HEADCROP:10 CROP:50 MINLEN:50
 TrimmomaticPE: Started with arguments:
